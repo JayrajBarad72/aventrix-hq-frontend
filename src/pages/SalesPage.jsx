@@ -13,6 +13,10 @@ export default function SalesPage() {
   const [emails, setEmails] = useState([]);
   const [pipeline, setPipeline] = useState({});
   const [loading, setLoading] = useState(false);
+  const [manualEmail, setManualEmail] = useState("");
+  const [manualNote, setManualNote] = useState("");
+  const [manualLoading, setManualLoading] = useState(false);
+  const [manualResult, setManualResult] = useState(null);
   const [searchIndustry, setSearchIndustry] = useState("IT");
   const [selectedLead, setSelectedLead] = useState(null);
   const [leadDetail, setLeadDetail] = useState(null);
@@ -28,6 +32,45 @@ export default function SalesPage() {
     axios.get(`${API}/scout/leads`).then(r=>setLeads(r.data)).catch(()=>{});
     axios.get(`${API}/outreach/emails`).then(r=>setEmails(r.data)).catch(()=>{});
     axios.get(`${API}/scout/pipeline`).then(r=>setPipeline(r.data)).catch(()=>{});
+  }
+
+  async function addManualLead() {
+    if (!manualEmail.trim()) return;
+    setManualLoading(true);
+    setManualResult(null);
+    try {
+      const r = await axios.post(`${API}/leads/add-manual`, {
+        email: manualEmail.trim(),
+        note: manualNote.trim()
+      });
+      setManualResult(r.data);
+      if (r.data.success) {
+        setManualEmail("");
+        setManualNote("");
+        setTimeout(() => loadAll(), 2000);
+      }
+    } catch(e) {
+      setManualResult({ success: false, error: "Failed to add lead" });
+    }
+    setManualLoading(false);
+  }
+
+  async function markDemoBooked(leadId, leadName) {
+    if (!window.confirm(`Mark demo booked with ${leadName}?`)) return;
+    try {
+      await axios.post(`${API}/leads/${leadId}/mark-demo`);
+      alert(`Demo marked! Check your WhatsApp for celebration message.`);
+      loadAll();
+    } catch(e) { alert("Failed to update lead"); }
+  }
+
+  async function markWon(leadId, leadName) {
+    if (!window.confirm(`Mark ${leadName} as WON CUSTOMER? This is your first sale!`)) return;
+    try {
+      await axios.post(`${API}/leads/${leadId}/mark-won`);
+      alert(`CONGRATULATIONS! First customer! Check your WhatsApp!`);
+      loadAll();
+    } catch(e) { alert("Failed to update lead"); }
   }
 
   async function searchLeads() {
