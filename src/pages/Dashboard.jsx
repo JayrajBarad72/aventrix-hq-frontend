@@ -6,12 +6,15 @@ const API = "https://avebackend.onrender.com/api";
 export default function Dashboard() {
   const [metrics, setMetrics] = useState({total_leads:0,emails_sent:0,demos_booked:0,pipeline_value:0});
   const [activity, setActivity] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
 
   useEffect(() => {
-    axios.get(`${API}/metrics`).then(r => setMetrics(r.data)).catch(()=>{});
+    axios.get(`${API}/metrics`)
+    axios.get(`${API}/email/analytics`).then(r => setAnalytics(r.data.summary)).catch(()=>{}).then(r => setMetrics(r.data)).catch(()=>{});
     axios.get(`${API}/activity`).then(r => setActivity(r.data)).catch(()=>{});
     const interval = setInterval(() => {
-      axios.get(`${API}/metrics`).then(r => setMetrics(r.data)).catch(()=>{});
+      axios.get(`${API}/metrics`)
+    axios.get(`${API}/email/analytics`).then(r => setAnalytics(r.data.summary)).catch(()=>{}).then(r => setMetrics(r.data)).catch(()=>{});
       axios.get(`${API}/activity`).then(r => setActivity(r.data)).catch(()=>{});
     }, 30000);
     return () => clearInterval(interval);
