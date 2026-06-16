@@ -192,6 +192,23 @@ export default function SalesPage() {
         ))}
       </div>
 
+      {/* Manual Lead Add Box - always visible */}
+      <div style={{marginBottom:16,background:"rgba(55,138,221,0.08)",border:"1px solid rgba(55,138,221,0.25)",borderRadius:10,padding:"14px 18px"}}>
+        <div style={{fontWeight:600,color:"#0a1628",marginBottom:10,fontSize:13}}>+ Add Lead Manually — Enter email, we research & send personalised email automatically</div>
+        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+          <input value={manualEmail} onChange={e=>setManualEmail(e.target.value)} placeholder="Email address (e.g. john@lawfirm.com)" style={{flex:2,minWidth:200,padding:"8px 12px",borderRadius:8,border:"1px solid #ddd",fontSize:13}} />
+          <input value={manualNote} onChange={e=>setManualNote(e.target.value)} placeholder="Note (optional — e.g. met at conference)" style={{flex:2,minWidth:160,padding:"8px 12px",borderRadius:8,border:"1px solid #ddd",fontSize:13}} />
+          <button onClick={addManualLead} disabled={manualLoading||!manualEmail} style={{padding:"8px 16px",background:"#0a1628",color:"white",border:"none",borderRadius:8,cursor:"pointer",fontSize:13,fontWeight:600,flexShrink:0}}>
+            {manualLoading?"Researching...":"Add & Send Email →"}
+          </button>
+        </div>
+        {manualResult && (
+          <div style={{marginTop:8,padding:"8px 12px",borderRadius:8,background:manualResult.success?"#f0fff4":"#fff5f5",color:manualResult.success?"#276749":"#c53030",fontSize:12}}>
+            {manualResult.success ? `✅ ${manualResult.message} — Subject: "${manualResult.email_preview?.subject}"` : `❌ ${manualResult.error}`}
+          </div>
+        )}
+      </div>
+
       {/* PIPELINE KANBAN */}
       {tab==="pipeline" && (
         <div>
