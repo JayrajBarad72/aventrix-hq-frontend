@@ -25,6 +25,9 @@ export default function SalesPage() {
   const [replyResult, setReplyResult] = useState(null);
   const [proposal, setProposal] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [linkedinIndustry, setLinkedinIndustry] = useState("IT");
+  const [linkedinMessages, setLinkedinMessages] = useState([]);
+  const [linkedinLoading, setLinkedinLoading] = useState(false);
 
   useEffect(() => { loadAll(); }, []);
 
@@ -133,6 +136,23 @@ export default function SalesPage() {
     const blob = new Blob([csv], {type:"text/csv"});
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href = url; a.download = "aventrix_leads.csv"; a.click();
+  }
+
+  async function loadLinkedinMessages() {
+    setLinkedinLoading(true);
+    setLinkedinMessages([]);
+    try {
+      const r = await axios.get(`${API}/linkedin/messages/${linkedinIndustry}`);
+      setLinkedinMessages(r.data.messages || []);
+    } catch (e) {
+      alert("Failed to generate LinkedIn messages. Check backend logs.");
+    }
+    setLinkedinLoading(false);
+  }
+
+  function copyToClipboard(text) {
+    navigator.clipboard.writeText(text);
+    alert("📋 Copied to clipboard");
   }
 
   async function sendEmail(id) {
@@ -492,6 +512,53 @@ export default function SalesPage() {
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {tab==="linkedin" && (
+        <div>
+          <div style={{background:"white",borderRadius:12,padding:20,marginBottom:12,border:"1px solid #e5e5e5"}}>
+            <div style={{fontSize:14,fontWeight:500,marginBottom:14}}>💼 Generate LinkedIn Connection Requests</div>
+            <div style={{marginBottom:10,fontSize:13,color:"#666"}}>Generates personalized 300-character connection request messages for your top qualified leads in an industry.</div>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              <select value={linkedinIndustry} onChange={e=>setLinkedinIndustry(e.target.value)} style={{padding:"7px 10px",borderRadius:8,border:"1px solid #e5e5e5",fontSize:13}}>
+                <option>IT</option><option>Healthcare</option><option>Finance</option><option>Legal</option><option>IT_SMB</option><option>R&D</option>
+              </select>
+              <button onClick={loadLinkedinMessages} disabled={linkedinLoading} style={{padding:"7px 14px",background:"#0a1628",color:"white",border:"none",borderRadius:8,cursor:"pointer",fontSize:13}}>
+                {linkedinLoading?"Generating...":"💼 Generate Messages"}
+              </button>
+            </div>
+          </div>
+
+          {linkedinLoading && (
+            <div style={{textAlign:"center",padding:30,color:"#888",fontSize:13}}>Generating personalized messages for top leads...</div>
+          )}
+
+          {!linkedinLoading && linkedinMessages.length === 0 && (
+            <div style={{textAlign:"center",padding:30,color:"#888",fontSize:13}}>No messages generated yet. Pick an industry and click Generate Messages.</div>
+          )}
+
+          {linkedinMessages.map(m => (
+            <div key={m.lead_id} style={{background:"white",borderRadius:12,padding:16,marginBottom:10,border:"1px solid #e5e5e5"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                <div>
+                  <div style={{fontSize:14,fontWeight:600,color:"#0a1628"}}>{m.contact}</div>
+                  <div style={{fontSize:12,color:"#888"}}>{m.company} · score {m.score}</div>
+                </div>
+                {m.linkedin_url ? (
+                  <a href={m.linkedin_url} target="_blank" rel="noreferrer" style={{fontSize:12,color:"#378ADD",textDecoration:"none"}}>Open profile ↗</a>
+                ) : (
+                  <span style={{fontSize:12,color:"#bbb"}}>No LinkedIn URL on file</span>
+                )}
+              </div>
+              <div style={{padding:12,background:"#f8f9fa",borderRadius:8,fontSize:13,lineHeight:1.7,marginBottom:8}}>
+                {m.connection_request}
+              </div>
+              <button onClick={()=>copyToClipboard(m.connection_request)} style={{padding:"6px 12px",background:"white",border:"1px solid #e5e5e5",borderRadius:8,cursor:"pointer",fontSize:12}}>
+                📋 Copy message
+              </button>
+            </div>
+          ))}
         </div>
       )}
     </div>
