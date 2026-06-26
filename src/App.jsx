@@ -16,6 +16,7 @@ const API = "https://avebackend.onrender.com/api";
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem("hq_token"));
   const [backingUp, setBackingUp] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
 
   async function handleBackup() {
     setBackingUp(true);
@@ -37,15 +38,18 @@ export default function App() {
   return (
     <BrowserRouter>
       <div className="app">
-        <aside className="sidebar">
+        <button className="mobile-menu-btn" onClick={() => setNavOpen(true)} aria-label="Menu">☰</button>
+        <div className={navOpen ? "nav-overlay open" : "nav-overlay"} onClick={() => setNavOpen(false)}></div>
+        <aside className={navOpen ? "sidebar open" : "sidebar"}>
           <div className="sidebar-brand">
             <div className="brand-icon">🛡️</div>
             <div>
               <div className="brand-name">Aventrix HQ</div>
               <div className="brand-sub">AI. Secured. Governed.</div>
             </div>
+            <button className="sidebar-close" onClick={() => setNavOpen(false)} aria-label="Close">✕</button>
           </div>
-          <nav className="sidebar-nav">
+          <nav className="sidebar-nav" onClick={() => setNavOpen(false)}>
             {[
               ["/","📊","Dashboard"],
               ["/ceo","👑","CEO — Alex"],
